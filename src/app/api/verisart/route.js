@@ -17,10 +17,8 @@ export async function GET(request) {
         'Cache-Control': 'no-store',
       },
     });
-  } catch (error) {
-    return new NextResponse(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+ } catch (error) {
+    console.error('Error fetching Verisart dashboard:', error);
+    return new Response('Error fetching Verisart dashboard', { status: 500 });
   }
 }
