@@ -1,3 +1,5 @@
+'use client';  // Add this as the first line
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -11,21 +13,18 @@ const parseArtworks = (html) => {
   const doc = parser.parseFromString(html, 'text/html');
   const artworks = [];
   
-  // Find all artwork cards using the data-test attribute
   doc.querySelectorAll('article[data-test="previewCard"]').forEach(article => {
-    // Extract information using the exact Verisart class names
-    const title = article.querySelector('.ver-text-lg .ver-truncate')?.textContent;
-    const artist = article.querySelector('.ver-text-base.ver-font-bold')?.textContent;
-    const year = article.querySelector('.ver-text-lg .ver-inline')?.textContent?.replace(',', '').trim();
-    const imageUrl = article.querySelector('.ver-relative.ver-min-h-64 img')?.src;
+    const title = article.querySelector('.ver-truncate')?.textContent;
+    const artist = article.querySelector('h2.ver-text-base.ver-font-bold')?.textContent;
+    const year = article.querySelector('.ver-inline.ver-flex-shrink-0')?.textContent;
+    const imageUrl = article.querySelector('img')?.src;
     
-    // Only add artwork if we have the essential information
     if (title && artist) {
       artworks.push({
-        id: `${title}-${year}`.replace(/\s+/g, '-').toLowerCase(),
+        id: `${title}-${year}`.replace(/[\s,]+/g, '-').toLowerCase(),
         title,
         artist,
-        year,
+        year: year?.replace(',', '').trim() || '',
         imageUrl,
         status: 'Unverified'
       });
@@ -34,7 +33,6 @@ const parseArtworks = (html) => {
   
   return artworks;
 };
-
 const VerisartDashboard = () => {
   // State management for our application
   const [artworks, setArtworks] = useState([]);
@@ -46,31 +44,22 @@ const VerisartDashboard = () => {
   const [view, setView] = useState('dashboard');
 
   // Fetch dashboard data when component mounts
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        // Use our proxy API route instead of direct fetch
-        const response = await fetch('/api/verisart');
-        if (!response.ok) throw new Error('Failed to fetch dashboard');
-        
-        const html = await response.text();
-        const parsedArtworks = parseArtworks(html);
-        
-        if (parsedArtworks.length === 0) {
-          throw new Error('No artworks found');
-        }
-        
-        setArtworks(parsedArtworks);
-        setError(null);
-      } catch (error) {
-        setError('Error loading artworks: ' + error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+ useEffect(() => {
+  const fetchDashboard = async () => {
+    try {
+      const response = await fetch('/api/verisart');
+      const html = await response.text();
+      const parsedArtworks = parseArtworks(html);
+      setArtworks(parsedArtworks);
+    } catch (error) {
+      setError('Error loading artworks: ' + error.message);
+    } finally {
+      setIsLoading(false);  // Make sure this runs
+    }
+  };
 
-    fetchDashboard();
-  }, []);
+  fetchDashboard();
+}, []);
 
   // Handle artwork selection and fetch its Verisart details
   const handleArtworkSelect = async (artwork) => {
