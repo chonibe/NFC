@@ -9,16 +9,33 @@ import { Loader2, Check, Tag, ArrowLeft } from 'lucide-react';
 const parseArtworks = (html) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
-  const cards = doc.querySelectorAll('.Dashboard_DashboardWrapper__Fcs2I article');
+  const artworks = [];
   
-  return Array.from(cards).map(card => ({
-    id: `${card.querySelector('.ver-truncate')?.textContent || 'untitled'}-${Date.now()}`,
-    title: card.querySelector('.ver-truncate')?.textContent || 'Untitled',
-    artist: card.querySelector('.ver-font-bold')?.textContent || 'Unknown Artist',
-    year: card.querySelector('.ver-inline')?.textContent?.replace(',', '').trim() || '',
-    imageUrl: card.querySelector('img')?.src,
-    status: 'Unverified'
-  }));
+  const container = doc.querySelector('.Dashboard_DashboardWrapper__Fcs2I');
+  if (!container) return artworks;
+
+  const cards = container.querySelectorAll('article[data-test="previewCard"]');
+  
+  cards.forEach(card => {
+    const title = card.querySelector('.ver-text-lg .ver-truncate')?.textContent;
+    const artist = card.querySelector('.ver-text-base.ver-font-bold')?.textContent;
+    const year = card.querySelector('.ver-inline.ver-flex-shrink-0')?.textContent;
+    const imageUrl = card.querySelector('.ver-min-h-64 img')?.src;
+    
+    artworks.push({
+      id: `${title || 'untitled'}-${Date.now()}`.toLowerCase().replace(/[^\w-]/g, '-'),
+      title: title || 'Untitled',
+      artist: artist || 'Unknown Artist',
+      year: year?.replace(',', '').trim() || '',
+      imageUrl: imageUrl || '',
+      status: 'Unverified'
+    });
+  });
+
+  console.log('Found cards:', cards.length);
+  console.log('Parsed artworks:', artworks);
+  
+  return artworks;
 };
 
 const VerisartDashboard = () => {
