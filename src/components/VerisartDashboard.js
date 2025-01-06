@@ -28,6 +28,8 @@ const parseArtworks = (html) => {
 
   // Parse each card
   cards.forEach((card, index) => {
+      console.log(`Processing card ${index + 1}:`, card.outerHTML);
+});
     try {
       const title = card.querySelector('h2.ver-text-base.ver-font-bold')?.textContent.trim() || 'Untitled';
       const artist = card.querySelector('.ver-text-lg .ver-truncate')?.textContent.trim() || 'Unknown Artist';
