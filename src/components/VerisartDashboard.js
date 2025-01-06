@@ -9,7 +9,7 @@ import { Loader2, Check, Tag, ArrowLeft } from 'lucide-react';
 const parseArtworks = (html) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
-  const cards = doc.querySelectorAll('.Dashboard_DashboardWrapper__Fcs2I article');
+  const cards = doc.querySelectorAll('.ver-w-full.ver-grid article[data-test="previewCard"]');
   
   return Array.from(cards).map(card => ({
     id: `${card.querySelector('.ver-truncate')?.textContent || 'untitled'}-${Date.now()}`,
@@ -20,7 +20,6 @@ const parseArtworks = (html) => {
     status: 'Unverified'
   }));
 };
-
 const VerisartDashboard = () => {
   const [artworks, setArtworks] = useState([]);
   const [selectedArtwork, setSelectedArtwork] = useState(null);
