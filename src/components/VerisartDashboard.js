@@ -13,20 +13,17 @@ const parseArtworks = (html) => {
   const doc = parser.parseFromString(html, 'text/html');
   const artworks = [];
   
-  // Find artworks in the dashboard wrapper
-  const cards = doc.querySelectorAll('.Dashboard_DashboardWrapper__Fcs2I article');
-  
-  cards.forEach(article => {
-    const title = article.querySelector('div.ver-p-5 .ver-text-lg p.ver-truncate')?.textContent;
-    const artist = article.querySelector('.ver-font-bold')?.textContent;
-    const year = article.querySelector('.ver-text-lg .ver-inline')?.textContent;
+  doc.querySelectorAll('article[data-test="previewCard"]').forEach(article => {
+    const title = article.querySelector('.ver-truncate')?.textContent;
+    const artist = article.querySelector('h2.ver-text-base.ver-font-bold')?.textContent;
+    const year = article.querySelector('.ver-inline.ver-flex-shrink-0')?.textContent;
     const imageUrl = article.querySelector('img')?.src;
     
-    if (title || artist) {
+    if (title && artist) {
       artworks.push({
-        id: `${title || 'untitled'}-${Date.now()}`.toLowerCase().replace(/\s+/g, '-'),
-        title: title || 'Untitled',
-        artist: artist || 'Unknown Artist',
+        id: `${title}-${year}`.replace(/[\s,]+/g, '-').toLowerCase(),
+        title,
+        artist,
         year: year?.replace(',', '').trim() || '',
         imageUrl,
         status: 'Unverified'
