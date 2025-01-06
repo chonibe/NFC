@@ -1,24 +1,33 @@
 import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 
-export const runtime = "edge";
-export const preferredRegion = ["iad1"];
-
-export async function GET(request) {
-  const dashboardHTML = `<div id="verisart-app"><div class="ver-mx-20 ver-flex ver-flex-col ver-my-5">
-    <!-- Full HTML goes here -->
-  </div></div>`;
-
+export async function GET() {
   try {
-    return new NextResponse(dashboardHTML, {
-      status: 200,
+    const response = await fetch('https://www.thestreetlamp.com/apps/verisart', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Referer': 'https://www.thestreetlamp.com/',
+        'Origin': 'https://www.thestreetlamp.com'
+      }
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const html = await response.text();
+    
+    return new NextResponse(html, {
       headers: {
         'Content-Type': 'text/html',
-        'Cache-Control': 'no-store',
       },
     });
- } catch (error) {
-    console.error('Error fetching Verisart dashboard:', error);
-    return new Response('Error fetching Verisart dashboard', { status: 500 });
+  } catch (error) {
+    console.error('API Error:', error);
+    return new NextResponse(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   }
 }
