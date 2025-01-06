@@ -1,28 +1,23 @@
-'use client';  // Add this as the first line
+'use client';  // Add this at the top since we're using hooks
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';  // Import only what we need from React
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import { Loader2, Check, Tag, ArrowLeft } from 'lucide-react';
 
-// We know exactly where the dashboard is located
+// Dashboard URL constant
 const DASHBOARD_URL = 'https://www.thestreetlamp.com/apps/verisart';
 
-// This function parses the specific HTML structure we saw in the Verisart dashboard
+// Artwork parsing function
 const parseArtworks = (html) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const artworks = [];
   
-  // Using the exact class names we saw in the HTML
   const artworkCards = doc.querySelectorAll('article[data-test="previewCard"]');
   
   artworkCards.forEach(article => {
-    // Using the exact class structure from the provided HTML
     const title = article.querySelector('.ver-text-lg .ver-truncate')?.textContent;
     const artist = article.querySelector('.ver-text-base.ver-font-bold')?.textContent;
     const year = article.querySelector('.ver-text-lg .ver-inline')?.textContent?.replace(',', '').trim();
@@ -43,7 +38,8 @@ const parseArtworks = (html) => {
   return artworks;
 };
 
-const VerisartDashboard = () => {
+// Main component
+function VerisartDashboard() {  // Changed to function declaration
   const [artworks, setArtworks] = useState([]);
   const [selectedArtwork, setSelectedArtwork] = useState(null);
   const [verisartUrl, setVerisartUrl] = useState(null);
@@ -52,7 +48,6 @@ const VerisartDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState('dashboard');
 
-  // Fetch the dashboard directly from thestreetlamp.com
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
@@ -247,6 +242,6 @@ const VerisartDashboard = () => {
       </Card>
     </div>
   );
-};
+}
 
 export default VerisartDashboard;
