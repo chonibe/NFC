@@ -12,26 +12,14 @@ const parseArtworks = (html) => {
   const doc = parser.parseFromString(html, 'text/html');
   const artworks = [];
 
-  // Locate the container
-  const container = doc.querySelector('.Dashboard_DashboardWrapper__Fcs2I');
-  if (!container) {
-    console.error('Container not found');
-    return artworks;
-  }
-
   // Locate all cards
-  const cards = container.querySelectorAll('article[data-test="previewCard"]');
+  const cards = doc.querySelectorAll('article[data-test="previewCard"]');
   console.log('Cards found:', cards.length);
-
-  if (!cards.length) {
-    console.error('No cards found');
-    return artworks;
-  }
 
   // Parse each card
   cards.forEach((card, index) => {
     try {
-      console.log(`Processing card ${index + 1}:`, card.outerHTML); // Debugging log
+      console.log(`Processing card ${index + 1}:`, card.outerHTML);
 
       const title = card.querySelector('h2.ver-text-base.ver-font-bold')?.textContent.trim() || 'Untitled';
       const artist = card.querySelector('.ver-text-lg .ver-truncate')?.textContent.trim() || 'Unknown Artist';
@@ -51,9 +39,7 @@ const parseArtworks = (html) => {
     }
   });
 
-  console.log('Total cards parsed:', cards.length);
   console.log('Parsed artworks:', artworks);
-
   return artworks;
 };
 
