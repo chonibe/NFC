@@ -21,6 +21,8 @@ const parseArtworks = (html) => {
 
   // Locate all cards
   const cards = container.querySelectorAll('article[data-test="previewCard"]');
+  console.log('Cards found:', cards.length);
+
   if (!cards.length) {
     console.error('No cards found');
     return artworks;
@@ -28,9 +30,9 @@ const parseArtworks = (html) => {
 
   // Parse each card
   cards.forEach((card, index) => {
-      console.log(`Processing card ${index + 1}:`, card.outerHTML);
-});
     try {
+      console.log(`Processing card ${index + 1}:`, card.outerHTML); // Debugging log
+
       const title = card.querySelector('h2.ver-text-base.ver-font-bold')?.textContent.trim() || 'Untitled';
       const artist = card.querySelector('.ver-text-lg .ver-truncate')?.textContent.trim() || 'Unknown Artist';
       const year = card.querySelector('.ver-inline.ver-flex-shrink-0')?.textContent.trim()?.replace(',', '') || '';
