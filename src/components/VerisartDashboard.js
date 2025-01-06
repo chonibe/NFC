@@ -73,7 +73,8 @@ useEffect(() => {
       setIsLoading(true); // Ensure loading state is set when the fetch starts
       const response = await fetch('/api/verisart');
       const html = await response.text();
-      const parsedArtworks = (html);
+     const parsedArtworks = parseArtworks(html);
+
       if (parsedArtworks.length > 0) {
         setArtworks(parsedArtworks);
       } else {
