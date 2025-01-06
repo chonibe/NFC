@@ -71,11 +71,9 @@ const VerisartDashboard = () => {
     setIsLoading(true);
 
     try {
-      // We'll fetch the artwork's specific page to get its Verisart URL
       const response = await fetch(`${DASHBOARD_URL}/works/${artwork.id}`);
       const html = await response.text();
       
-      // Looking for the exact div structure we saw in the HTML
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
       const verisartLink = doc.querySelector('div.ver-mt-12 a[href^="https://verisart.com/works/"]');
@@ -92,39 +90,6 @@ const VerisartDashboard = () => {
     }
   };
 
-};
-
-export default VerisartDashboard;
-    fetchDashboard();
-  }, []);
-
-  // Handler for when an artwork is selected for authentication
-  const handleArtworkSelect = async (artwork) => {
-    setSelectedArtwork(artwork);
-    setView('authentication');
-    setIsLoading(true);
-
-    try {
-      const response = await fetch(`/apps/verisart/works/${artwork.id}`);
-      const html = await response.text();
-      
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const verisartLink = doc.querySelector('div.ver-mt-12 a[href^="https://verisart.com/works/"]');
-      
-      if (verisartLink) {
-        setVerisartUrl(verisartLink.getAttribute('href'));
-      } else {
-        throw new Error('Verisart URL not found');
-      }
-    } catch (error) {
-      setError('Error fetching artwork details: ' + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handler for initiating NFC scanning
   const handleNFCScan = async () => {
     if (!verisartUrl) {
       setError('No Verisart URL available');
@@ -151,22 +116,18 @@ export default VerisartDashboard;
     }
   };
 
-  // Handler for encoding the NFC tag
   const handleNFCEncoding = async (serialNumber) => {
     setNfcStatus('encoding');
     
     try {
-      // Prepare the URL record for the NFC tag
       const record = {
         recordType: "url",
         data: verisartUrl
       };
 
-      // In a real application, we would write to the NFC tag here
       await new Promise(resolve => setTimeout(resolve, 2000));
       console.log('Writing to NFC:', record);
       
-      // Update the UI to show success
       setNfcStatus('success');
       setArtworks(prev => 
         prev.map(art => 
@@ -181,7 +142,6 @@ export default VerisartDashboard;
     }
   };
 
-  // Main render function
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <Card className="max-w-4xl mx-auto">
