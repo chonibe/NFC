@@ -4,10 +4,10 @@ const parseArtworks = (html) => {
   const artworks = [];
   
   doc.querySelectorAll('article[data-test="previewCard"]').forEach(article => {
-    const title = article.querySelector('.ver-truncate')?.textContent;
+    const title = article.querySelector('.ver-flex-row p.ver-truncate')?.textContent;
     const artist = article.querySelector('h2.ver-text-base.ver-font-bold')?.textContent;
-    const year = article.querySelector('.ver-inline.ver-flex-shrink-0')?.textContent;
-    const imageUrl = article.querySelector('img')?.src;
+    const year = article.querySelector('p.ver-inline')?.textContent;
+    const imageUrl = article.querySelector('.ver-min-h-64 img')?.src;
     
     if (title && artist) {
       artworks.push({
@@ -20,6 +20,9 @@ const parseArtworks = (html) => {
       });
     }
   });
+  
+  console.log('Parsed HTML:', html.substring(0, 200));
+  console.log('Found artworks:', artworks);
   
   return artworks;
 };
