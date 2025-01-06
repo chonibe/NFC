@@ -10,33 +10,49 @@ const parseArtworks = (html) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const artworks = [];
-  
-  const container = doc.querySelector('.Dashboard_DashboardWrapper__Fcs2I');
-  if (!container) return artworks;
 
+  // Ensure the container is correctly targeted
+  const container = doc.querySelector('.Dashboard_DashboardWrapper__Fcs2I');
+  if (!container) {
+    console.error("Container not found");
+    return artworks;
+  }
+
+  // Select all artwork cards
   const cards = container.querySelectorAll('article[data-test="previewCard"]');
-  
-  cards.forEach(card => {
-    const title = card.querySelector('.ver-text-lg .ver-truncate')?.textContent;
-    const artist = card.querySelector('.ver-text-base.ver-font-bold')?.textContent;
-    const year = card.querySelector('.ver-inline.ver-flex-shrink-0')?.textContent;
-    const imageUrl = card.querySelector('.ver-min-h-64 img')?.src;
-    
+
+  if (!cards.length) {
+    console.error("No artwork cards found");
+    return artworks;
+  }
+
+  // Iterate over each card and extract details
+  cards.forEach((card, index) => {
+    const title = card.querySelector('.ver-text-lg .ver-truncate')?.textContent?.trim() || 'Untitled';
+    const artist = card.querySelector('.ver-text-base.ver-font-bold')?.textContent?.trim() || 'Unknown Artist';
+    const year = card.querySelector('.ver-inline.ver-flex-shrink-0')?.textContent?.trim()?.replace(',', '') || '';
+    const imageUrl = card.querySelector('.ver-min-h-64 img')?.src || '';
+
+    // Debugging: Log each card's data
+    console.log(`Card ${index + 1}:`, { title, artist, year, imageUrl });
+
+    // Push valid artwork data into the array
     artworks.push({
-      id: `${title || 'untitled'}-${Date.now()}`.toLowerCase().replace(/[^\w-]/g, '-'),
-      title: title || 'Untitled',
-      artist: artist || 'Unknown Artist',
-      year: year?.replace(',', '').trim() || '',
-      imageUrl: imageUrl || '',
-      status: 'Unverified'
+      id: `${title}-${Date.now()}-${index}`.toLowerCase().replace(/[^\w-]/g, '-'),
+      title,
+      artist,
+      year,
+      imageUrl,
+      status: 'Unverified',
     });
   });
 
-  console.log('Found cards:', cards.length);
+  console.log('Total cards parsed:', cards.length);
   console.log('Parsed artworks:', artworks);
-  
+
   return artworks;
 };
+
 
 const VerisartDashboard = () => {
   const [artworks, setArtworks] = useState([]);
@@ -53,7 +69,7 @@ useEffect(() => {
       setIsLoading(true); // Ensure loading state is set when the fetch starts
       const response = await fetch('/api/verisart');
       const html = await response.text();
-      const parsedArtworks = parseArtworks(html);
+      const parsedArtworks = (html);
       if (parsedArtworks.length > 0) {
         setArtworks(parsedArtworks);
       } else {
