@@ -54,7 +54,6 @@ const VerisartDashboard = () => {
     fetchDashboard();
   }, []);
 
-  // Rest of the component code remains the same...
   
   return (
     <div className="min-h-screen bg-gray-50 p-8">
