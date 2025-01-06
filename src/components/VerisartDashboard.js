@@ -6,45 +6,45 @@ import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import { Loader2, Check, Tag, ArrowLeft } from 'lucide-react';
 
+
 const parseArtworks = (html) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const artworks = [];
 
-  // Ensure the container is correctly targeted
+  // Locate the container
   const container = doc.querySelector('.Dashboard_DashboardWrapper__Fcs2I');
   if (!container) {
-    console.error("Container not found");
+    console.error('Container not found');
     return artworks;
   }
 
-  // Select all artwork cards
+  // Locate all cards
   const cards = container.querySelectorAll('article[data-test="previewCard"]');
-
   if (!cards.length) {
-    console.error("No artwork cards found");
+    console.error('No cards found');
     return artworks;
   }
 
-  // Iterate over each card and extract details
+  // Parse each card
   cards.forEach((card, index) => {
-    const title = card.querySelector('.ver-text-lg .ver-truncate')?.textContent?.trim() || 'Untitled';
-    const artist = card.querySelector('.ver-text-base.ver-font-bold')?.textContent?.trim() || 'Unknown Artist';
-    const year = card.querySelector('.ver-inline.ver-flex-shrink-0')?.textContent?.trim()?.replace(',', '') || '';
-    const imageUrl = card.querySelector('.ver-min-h-64 img')?.src || '';
+    try {
+      const title = card.querySelector('h2.ver-text-base.ver-font-bold')?.textContent.trim() || 'Untitled';
+      const artist = card.querySelector('.ver-text-lg .ver-truncate')?.textContent.trim() || 'Unknown Artist';
+      const year = card.querySelector('.ver-inline.ver-flex-shrink-0')?.textContent.trim()?.replace(',', '') || '';
+      const imageUrl = card.querySelector('.ver-min-h-64 img')?.src || '';
 
-    // Debugging: Log each card's data
-    console.log(`Card ${index + 1}:`, { title, artist, year, imageUrl });
-
-    // Push valid artwork data into the array
-    artworks.push({
-      id: `${title}-${Date.now()}-${index}`.toLowerCase().replace(/[^\w-]/g, '-'),
-      title,
-      artist,
-      year,
-      imageUrl,
-      status: 'Unverified',
-    });
+      artworks.push({
+        id: `${title}-${Date.now()}-${index}`.toLowerCase().replace(/[^\w-]/g, '-'),
+        title,
+        artist,
+        year,
+        imageUrl,
+        status: 'Unverified',
+      });
+    } catch (err) {
+      console.error(`Error parsing card ${index + 1}:`, err);
+    }
   });
 
   console.log('Total cards parsed:', cards.length);
