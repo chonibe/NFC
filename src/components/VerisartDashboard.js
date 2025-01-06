@@ -1,28 +1,25 @@
-'use client';  // Add this at the top since we're using hooks
-
-import { useState, useEffect } from 'react';  // Import only what we need from React
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import { Loader2, Check, Tag, ArrowLeft } from 'lucide-react';
 
-// Dashboard URL constant
-const DASHBOARD_URL = 'https://www.thestreetlamp.com/apps/verisart';
-
-// Artwork parsing function
+// This function parses the HTML from the Verisart dashboard and extracts artwork information
+// It uses the specific class names we found in the Verisart HTML structure
 const parseArtworks = (html) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
   const artworks = [];
   
-  const artworkCards = doc.querySelectorAll('article[data-test="previewCard"]');
-  
-  artworkCards.forEach(article => {
+  // Find all artwork cards using the data-test attribute
+  doc.querySelectorAll('article[data-test="previewCard"]').forEach(article => {
+    // Extract information using the exact Verisart class names
     const title = article.querySelector('.ver-text-lg .ver-truncate')?.textContent;
     const artist = article.querySelector('.ver-text-base.ver-font-bold')?.textContent;
     const year = article.querySelector('.ver-text-lg .ver-inline')?.textContent?.replace(',', '').trim();
     const imageUrl = article.querySelector('.ver-relative.ver-min-h-64 img')?.src;
     
+    // Only add artwork if we have the essential information
     if (title && artist) {
       artworks.push({
         id: `${title}-${year}`.replace(/\s+/g, '-').toLowerCase(),
@@ -38,8 +35,8 @@ const parseArtworks = (html) => {
   return artworks;
 };
 
-// Main component
-function VerisartDashboard() {  // Changed to function declaration
+const VerisartDashboard = () => {
+  // State management for our application
   const [artworks, setArtworks] = useState([]);
   const [selectedArtwork, setSelectedArtwork] = useState(null);
   const [verisartUrl, setVerisartUrl] = useState(null);
@@ -48,15 +45,25 @@ function VerisartDashboard() {  // Changed to function declaration
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState('dashboard');
 
+  // Fetch dashboard data when component mounts
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const response = await fetch(DASHBOARD_URL);
+        // Use our proxy API route instead of direct fetch
+        const response = await fetch('/api/verisart');
+        if (!response.ok) throw new Error('Failed to fetch dashboard');
+        
         const html = await response.text();
         const parsedArtworks = parseArtworks(html);
+        
+        if (parsedArtworks.length === 0) {
+          throw new Error('No artworks found');
+        }
+        
         setArtworks(parsedArtworks);
+        setError(null);
       } catch (error) {
-        setError('Error fetching dashboard: ' + error.message);
+        setError('Error loading artworks: ' + error.message);
       } finally {
         setIsLoading(false);
       }
@@ -65,15 +72,21 @@ function VerisartDashboard() {  // Changed to function declaration
     fetchDashboard();
   }, []);
 
+  // Handle artwork selection and fetch its Verisart details
   const handleArtworkSelect = async (artwork) => {
     setSelectedArtwork(artwork);
     setView('authentication');
     setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch(`${DASHBOARD_URL}/works/${artwork.id}`);
+      // Use our proxy API route for fetching artwork details
+      const response = await fetch(`/api/verisart/works/${artwork.id}`);
+      if (!response.ok) throw new Error('Failed to fetch artwork details');
+      
       const html = await response.text();
       
+      // Parse the HTML to find the Verisart URL
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
       const verisartLink = doc.querySelector('div.ver-mt-12 a[href^="https://verisart.com/works/"]');
@@ -84,22 +97,25 @@ function VerisartDashboard() {  // Changed to function declaration
         throw new Error('Verisart URL not found');
       }
     } catch (error) {
-      setError('Error fetching artwork details: ' + error.message);
+      setError('Error loading artwork details: ' + error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Handle NFC scanning initialization
   const handleNFCScan = async () => {
     if (!verisartUrl) {
-      setError('No Verisart URL available');
+      setError('No Verisart URL available for NFC encoding');
       return;
     }
 
     setNfcStatus('scanning');
+    setError(null);
     
     if (!('NDEFReader' in window)) {
-      setError('NFC not supported on this device');
+      setError('NFC is not supported on this device. Please use an Android device with Chrome browser.');
+      setNfcStatus('idle');
       return;
     }
 
@@ -111,24 +127,29 @@ function VerisartDashboard() {  // Changed to function declaration
         handleNFCEncoding(serialNumber);
       });
     } catch (error) {
-      setError('NFC scanning error: ' + error.message);
+      setError('Error scanning NFC: ' + error.message);
       setNfcStatus('error');
     }
   };
 
+  // Handle NFC tag encoding
   const handleNFCEncoding = async (serialNumber) => {
     setNfcStatus('encoding');
+    setError(null);
     
     try {
+      const ndef = new window.NDEFReader();
+      
+      // Prepare the URL record for the NFC tag
       const record = {
         recordType: "url",
         data: verisartUrl
       };
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Writing to NFC:', record);
+      // Write the URL to the NFC tag
+      await ndef.write({ records: [record] });
       
-      setNfcStatus('success');
+      // Update artwork status in our state
       setArtworks(prev => 
         prev.map(art => 
           art.id === selectedArtwork.id 
@@ -136,12 +157,15 @@ function VerisartDashboard() {  // Changed to function declaration
             : art
         )
       );
+      
+      setNfcStatus('success');
     } catch (error) {
-      setError('NFC encoding error: ' + error.message);
+      setError('Error writing to NFC tag: ' + error.message);
       setNfcStatus('error');
     }
   };
 
+  // Render the UI based on current view and state
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <Card className="max-w-4xl mx-auto">
@@ -242,6 +266,6 @@ function VerisartDashboard() {  // Changed to function declaration
       </Card>
     </div>
   );
-}
+};
 
 export default VerisartDashboard;
