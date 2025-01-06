@@ -1,27 +1,14 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  try {
-    const response = await fetch('https://www.thestreetlamp.com/apps/verisart', {
-      headers: {
-        'Cookie': 'storefront_digest=xxxxx', // We'll need the actual cookie
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml',
-        'Referer': 'https://www.thestreetlamp.com'
-      },
-      credentials: 'include'
-    });
+  // Simulating dashboard content
+  const mockDashboardHTML = `
+    <div id="verisart-app"><div class="ver-mx-20 ver-flex ver-flex-col ver-my-5"><div class="ver-py-4 ver-px-7 ver-flex"><span class="ver-flex ver-flex-wrap-reverse ver-w-full ver-items-center ver-justify-end ver-gap-4"><span class="ver-flex ver-w-40 ver-items-center ver-justify-center"></span><span class="ver-flex ver-w-44 ver-items-center ver-justify-center"><button class="ver-flex ver-items-center ver-gap-4" type="button"><svg width="16" height="15" viewBox="0 0 16 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.3555 0C12.2513 0 12.1536 0.0130208 12.0625 0.0390625L1.90625 2.71484C1.48958 2.81901 1.15104 3.04036 0.890625 3.37891C0.630208 3.71745 0.5 4.10156 0.5 4.53125V13.125C0.5 13.6328 0.682292 14.0755 1.04688 14.4531C1.42448 14.8177 1.86719 15 2.375 15H13.625C14.1328 15 14.569 14.8177 14.9336 14.4531C15.3112 14.0755 15.5 13.6328 15.5 13.125V5C15.5 4.49219 15.3112 4.05599 14.9336 3.69141C14.569 3.3138 14.1328 3.125 13.625 3.125H5.26562L12.375 1.25V2.5H13.625V1.25C13.625 0.898438 13.4948 0.605469 13.2344 0.371094C12.987 0.123698 12.694 0 12.3555 0ZM2.375 4.375H13.625C13.8073 4.375 13.957 4.43359 14.0742 4.55078C14.1914 4.66797 14.25 4.81771 14.25 5V13.125C14.25 13.3073 14.1914 13.457 14.0742 13.5742C13.957 13.6914 13.8073 13.75 13.625 13.75H2.375C2.19271 13.75 2.04297 13.6914 1.92578 13.5742C1.80859 13.457 1.75 13.3073 1.75 13.125V5C1.75 4.81771 1.80859 4.66797 1.92578 4.55078C2.04297 4.43359 2.19271 4.375 2.375 4.375ZM12.0625 8.125C11.8021 8.125 11.5807 8.21615 11.3984 8.39844C11.2161 8.58073 11.125 8.80208 11.125 9.0625C11.125 9.32292 11.2161 9.54427 11.3984 9.72656C11.5807 9.90885 11.8021 10 12.0625 10C12.3229 10 12.5443 9.90885 12.7266 9.72656C12.9089 9.54427 13 9.32292 13 9.0625C13 8.80208 12.9089 8.58073 12.7266 8.39844C12.5443 8.21615 12.3229 8.125 12.0625 8.125Z" fill="#757575"></path></svg><span class="ver-text-base hover:ver-underline ver-underline-offset-4">Connect Wallet</span></button></span><span class="ver-flex ver-w-10 ver-items-center ver-justify-center"><div class="ver-h-10 ver-w-10 ver-cursor-pointer ver-rounded-full ver-bg-gradient-to-b ver-from-[#c1c1f7] ver-via-[#fdc862] ver-to-[#bbe9c5]">&nbsp;</div></span></span></div><div class="ver-flex ver-w-full ver-items-center ver-justify-end"></div><div class="ver-flex ver-justify-between"><div class="ver-space-y-5 ver-mb-8"><h1 class="ver-text-2xl ver-font-bold">Dashboard</h1><h3 class="ver-text-base ver-font-medium">7 items</h3></div></div><div class="ver-w-full ver-flex ver-justify-center ver-items-center ver-mt-5 Dashboard_DashboardWrapper__Fcs2I"><div class="ver-w-full md:ver-grid-cols-3 ver-grid ver-grid-cols-1 xl:ver-grid-cols-4 ver-gap-6"><article data-test="previewCard" class="ver-flex ver-flex-col ver-justify-end ver-group"><div class="ver-relative ver-border-x ver-border-t ver-border-solid ver-border-outline ver-cursor-pointer"><div class="ver-relative ver-min-h-64"><img alt="Test2" src="https://res.cloudinary.com/verisart/image/upload/so_undefined/if_iw_lte_ih,w_400/if_ih_lte_iw,h_400/production/files/btY3UwN1NRIj-P0MkoAUIpULBUSijtkmqtytgLepnr4.jpg" class="" style="width: 100%;"></div><div class="ver-absolute ver-bottom-0 ver-right-0 ver-p-2"></div></div><div class="ver-cursor-pointer"><div class="ver-flex ver-flex-col "><div class="ver-p-5 ver-border ver-border-solid ver-border-outline ver-flex ver-flex-col ver-justify-start ver-text-secondary ver-h-56 ver-bg-surface"><h2 class="ver-text-base ver-font-bold">Choni Be</h2><div class="ver-flex ver-flex-row ver-text-lg ver-font-normal ver-leading-6"><p class="ver-truncate ver-pr-0.5">Test2</p><p class="ver-inline ver-flex-shrink-0">, 2024</p></div></div></div></div></article></div></div></div></div>
+  `;
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const html = await response.text();
-    
-    return new NextResponse(html, {
-      headers: { 'Content-Type': 'text/html' }
-    });
-  } catch (error) {
-    return new NextResponse(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
-  }
+  return new NextResponse(mockDashboardHTML, {
+    headers: {
+      'Content-Type': 'text/html',
+    },
+  });
 }
