@@ -47,30 +47,27 @@ const VerisartDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState('dashboard');
 
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const response = await fetch('/api/verisart');
-        console.log('Response status:', response.status);
-        const html = await response.text();
-        console.log('HTML received:', html.substring(0, 200));
-        const parsedArtworks = parseArtworks(html);
-        console.log('Parsed artworks:', parsedArtworks);
-        if (parsedArtworks.length > 0) {
-          setArtworks(parsedArtworks);
-        } else {
-          setError('No artworks found');
-        }
-      } catch (error) {
-        setError('Error loading artworks: ' + error.message);
-      } finally {
-        setIsLoading(false);
+useEffect(() => {
+  const fetchDashboard = async () => {
+    try {
+      setIsLoading(true); // Ensure loading state is set when the fetch starts
+      const response = await fetch('/api/verisart');
+      const html = await response.text();
+      const parsedArtworks = parseArtworks(html);
+      if (parsedArtworks.length > 0) {
+        setArtworks(parsedArtworks);
+      } else {
+        setError('No artworks found');
       }
-    };
+    } catch (error) {
+      setError('Error loading artworks: ' + error.message);
+    } finally {
+      setIsLoading(false); // Ensure loading state is cleared after fetch
+    }
+  };
 
-    fetchDashboard();
-  }, []);
-
+  fetchDashboard();
+}, []);
   // Rest of the component code remains the same...
   
   return (
