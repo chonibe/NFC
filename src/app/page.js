@@ -1,5 +1,9 @@
 import VerisartDashboard from '../components/VerisartDashboard';
-
 export default function Home() {
-  return <VerisartDashboard />;
+  return (
+    <main>
+      {/* Using dynamic import for client component */}
+      <VerisartDashboard />
+    </main>
+  );
 }
