@@ -1,10 +1,18 @@
-import dynamic from 'next/dynamic';
+'use client';
 
-// Dynamically import the VerisartDashboard with no server-side rendering
-const VerisartDashboard = dynamic(() => import('../components/VerisartDashboard'), {
-  ssr: false
-});
+import { useEffect } from 'react';
+import VerisartDashboard from '../../components/VerisartDashboard';
 
-export default function Home() {
+export default function EmbedPage() {
+  useEffect(() => {
+    // Verify we're embedded in the correct context
+    if (window.location.href.includes('thestreetlamp.com')) {
+      const verisartContent = document.querySelector('#verisart-app');
+      if (!verisartContent) {
+        console.error('Verisart content not found - user may not be authenticated');
+      }
+    }
+  }, []);
+
   return <VerisartDashboard />;
 }
