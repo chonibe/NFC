@@ -9,35 +9,16 @@ import { Loader2, Check, Tag, ArrowLeft } from 'lucide-react';
 const parseArtworks = (html) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
-  const artworks = [];
+  const cards = doc.querySelectorAll('.Dashboard_DashboardWrapper__Fcs2I article');
   
-  // First check if we have the dashboard wrapper (indicates authenticated state)
-  const dashboardWrapper = doc.querySelector('.Dashboard_DashboardWrapper__Fcs2I');
-  if (!dashboardWrapper) {
-    throw new Error('Not authenticated or dashboard not found');
-  }
-
-  const cards = dashboardWrapper.querySelectorAll('article[data-test="previewCard"]');
-  
-  cards.forEach(card => {
-    const title = card.querySelector('.ver-text-lg .ver-truncate')?.textContent;
-    const artist = card.querySelector('.ver-font-bold')?.textContent;
-    const year = card.querySelector('.ver-inline.ver-flex-shrink-0')?.textContent;
-    const imageUrl = card.querySelector('.ver-min-h-64 img')?.src;
-    
-    if (title || artist) {
-      artworks.push({
-        id: `${title || 'untitled'}-${Date.now()}`.toLowerCase().replace(/[^\w-]/g, '-'),
-        title: title || 'Untitled',
-        artist: artist || 'Unknown Artist',
-        year: year?.replace(',', '').trim() || '',
-        imageUrl: imageUrl || '',
-        status: 'Unverified'
-      });
-    }
-  });
-
-  return artworks;
+  return Array.from(cards).map(card => ({
+    id: `${card.querySelector('.ver-truncate')?.textContent || 'untitled'}-${Date.now()}`,
+    title: card.querySelector('.ver-truncate')?.textContent || 'Untitled',
+    artist: card.querySelector('.ver-font-bold')?.textContent || 'Unknown Artist',
+    year: card.querySelector('.ver-inline')?.textContent?.replace(',', '').trim() || '',
+    imageUrl: card.querySelector('img')?.src,
+    status: 'Unverified'
+  }));
 };
 
 const VerisartDashboard = () => {
@@ -48,61 +29,33 @@ const VerisartDashboard = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState('dashboard');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const checkAuthAndLoadArtworks = () => {
+    const fetchDashboard = async () => {
       try {
-        // Get the Verisart app content from the parent page
-        const verisartContent = document.querySelector('#verisart-app');
-        if (!verisartContent) {
-          setError('Please log in to view your artworks');
-          setIsLoading(false);
-          return;
+        const response = await fetch('/api/verisart');
+        console.log('Response status:', response.status);
+        const html = await response.text();
+        console.log('HTML received:', html.substring(0, 200));
+        const parsedArtworks = parseArtworks(html);
+        console.log('Parsed artworks:', parsedArtworks);
+        if (parsedArtworks.length > 0) {
+          setArtworks(parsedArtworks);
+        } else {
+          setError('No artworks found');
         }
-
-        const artworks = parseArtworks(verisartContent.outerHTML);
-        setArtworks(artworks);
-        setIsAuthenticated(true);
       } catch (error) {
-        setError(error.message);
+        setError('Error loading artworks: ' + error.message);
       } finally {
         setIsLoading(false);
       }
     };
 
-    // Check authentication immediately
-    checkAuthAndLoadArtworks();
-
-    // Set up a periodic check for dashboard updates
-    const interval = setInterval(checkAuthAndLoadArtworks, 5000);
-    return () => clearInterval(interval);
+    fetchDashboard();
   }, []);
 
-  const handleArtworkSelect = async (artwork) => {
-    setSelectedArtwork(artwork);
-    setView('authentication');
-    setIsLoading(true);
-
-    try {
-      // Find the artwork's Verisart URL from the parent page
-      const artworkElement = document.querySelector(`[data-test="previewCard"][title="${artwork.title}"]`);
-      if (!artworkElement) throw new Error('Artwork not found');
-
-      const verisartLink = artworkElement.querySelector('a[href^="https://verisart.com/works/"]');
-      if (!verisartLink) throw new Error('Verisart URL not found');
-
-      setVerisartUrl(verisartLink.href);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Rest of your component code remains the same...
-  // (NFC handling and render functions)
-
+  // Rest of the component code remains the same...
+  
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <Card className="max-w-4xl mx-auto">
@@ -123,56 +76,45 @@ const VerisartDashboard = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {!isAuthenticated ? (
-            <Alert variant="destructive">
-              <AlertDescription>
-                Please log in to your Verisart account to view your artworks
-              </AlertDescription>
-            </Alert>
-          ) : error ? (
-            <Alert variant="destructive">
+          {error && (
+            <Alert variant="destructive" className="mb-4">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
-          ) : isLoading ? (
+          )}
+          
+          {isLoading ? (
             <div className="flex items-center justify-center p-8">
               <Loader2 className="w-8 h-8 animate-spin" />
             </div>
-          ) : view === 'dashboard' ? (
-            artworks.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {artworks.map(artwork => (
-                  <Card key={artwork.id} className="overflow-hidden">
-                    <img 
-                      src={artwork.imageUrl} 
-                      alt={artwork.title}
-                      className="w-full h-64 object-cover"
-                    />
-                    <div className="p-4">
-                      <h3 className="font-medium">{artwork.title}</h3>
-                      <p className="text-sm text-gray-500">{artwork.artist}, {artwork.year}</p>
-                      <div className="flex items-center justify-between mt-4">
-                        <span className={artwork.status === 'Verified' ? 'text-green-600' : 'text-orange-600'}>
-                          {artwork.status}
-                        </span>
-                        <Button 
-                          onClick={() => handleArtworkSelect(artwork)}
-                          disabled={artwork.status === 'Verified'}
-                        >
-                          <Tag className="w-4 h-4 mr-2" />
-                          Authenticate
-                        </Button>
-                      </div>
+          ) : view === 'dashboard' && artworks.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {artworks.map(artwork => (
+                <Card key={artwork.id} className="overflow-hidden">
+                  <img 
+                    src={artwork.imageUrl} 
+                    alt={artwork.title}
+                    className="w-full h-64 object-cover"
+                  />
+                  <div className="p-4">
+                    <h3 className="font-medium">{artwork.title}</h3>
+                    <p className="text-sm text-gray-500">{artwork.artist}, {artwork.year}</p>
+                    <div className="flex items-center justify-between mt-4">
+                      <span className={artwork.status === 'Verified' ? 'text-green-600' : 'text-orange-600'}>
+                        {artwork.status}
+                      </span>
+                      <Button 
+                        onClick={() => handleArtworkSelect(artwork)}
+                        disabled={artwork.status === 'Verified'}
+                      >
+                        <Tag className="w-4 h-4 mr-2" />
+                        Authenticate
+                      </Button>
                     </div>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center p-8 text-gray-500">
-                No artworks found
-              </div>
-            )
-          ) : (
-            // Authentication view remains the same...
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : view === 'authentication' ? (
             <div className="space-y-6">
               {selectedArtwork && verisartUrl && (
                 <div className="space-y-4">
@@ -209,6 +151,8 @@ const VerisartDashboard = () => {
                 </div>
               )}
             </div>
+          ) : (
+            <div className="text-center p-8 text-gray-500">No artworks found</div>
           )}
         </CardContent>
       </Card>
