@@ -23,5 +23,7 @@ module.exports = {
   },
   resolve: {
     extensions: ['.js', '.jsx']
+          '@': path.resolve(__dirname, 'src')
+
   }
 };
