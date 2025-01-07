@@ -22,8 +22,9 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ['.js', '.jsx']
-          '@': path.resolve(__dirname, 'src')
-
+    extensions: ['.js', '.jsx'], // Added missing comma here
+    alias: {
+      '@': path.resolve(__dirname, 'src') // Corrected the alias configuration
+    }
   }
 };
